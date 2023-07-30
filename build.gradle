@@ -1,0 +1,30 @@
+plugins {
+    id 'java'
+    id 'io.spring.dependency-management' version '1.1.0'
+}
+
+apply plugin: "idea"
+apply plugin: "java"
+apply plugin: "io.spring.dependency-management"
+
+group = 'com.bike.muscle'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '17'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+dependencies {
+    implementation 'org.mybatis.generator:mybatis-generator-core:1.4.0'
+}
