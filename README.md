@@ -36,3 +36,5 @@ generatorConfigurationのpluginに追加してください。
 ```
 
 mbGenerator を実行するとスネークケースに合わせてパッケージが作成されます。
+
+TODO: maven に登録はこれから
