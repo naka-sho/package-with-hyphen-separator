@@ -1,0 +1,14 @@
+name: test run # ←ワークフロー名を「Rust」に設定
+
+on:
+  workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      run: ls -ltr
+    - name: Run tests
+      run: date
