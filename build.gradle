@@ -7,6 +7,9 @@ apply plugin: "idea"
 apply plugin: "java"
 apply plugin: "io.spring.dependency-management"
 
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
+
 group = 'com.github.sho.naka.mybatis.parts'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '17'
