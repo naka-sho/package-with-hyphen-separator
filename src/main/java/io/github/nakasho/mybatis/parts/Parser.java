@@ -1,7 +1,4 @@
-package com.github.sho.naka.mybatis.parts;
-
-import java.util.Arrays;
-import java.util.stream.Collectors;
+package io.github.nakasho.mybatis.parts;
 
 public class Parser {
     private final static String REGEX = "\\.[^.]+$";

@@ -1,4 +1,4 @@
-package com.github.sho.naka.mybatis.parts;
+package io.github.nakasho.mybatis.parts;
 
 import org.mybatis.generator.api.IntrospectedTable;
 import org.mybatis.generator.api.PluginAdapter;
