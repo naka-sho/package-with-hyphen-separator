@@ -27,7 +27,7 @@ generatorConfigurationのpluginに追加してください。
     <context id="service" targetRuntime="MyBatis3DynamicSql">
         ...
 
-        <plugin type="com.github.sho.naka.mybatis.parts.PackageWithHyphenSeparatorPlugin"/>
+        <plugin type="PackageWithHyphenSeparatorPlugin"/>
 
         ...
     </context>

@@ -7,7 +7,7 @@ apply plugin: "idea"
 apply plugin: "java"
 apply plugin: "io.spring.dependency-management"
 
-group = 'com.github.sho.naka.mybatis.parts'
+group = 'io.github.naka-sho'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '17'
 
