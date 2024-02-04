@@ -11,8 +11,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
 group = 'io.github.naka-sho'
-archivesBaseName = "example-application"
-version = '0.0.1-SNAPSHOT'
+version = '0.0.10-SNAPSHOT'
 sourceCompatibility = '17'
 
 configurations {
@@ -63,51 +62,63 @@ artifacts {
     archives javadocJar, sourcesJar
 }
 
-signing {
-    sign configurations.archives
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
 
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-            repository(url: "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                authentication(userName: ossrhUsername, password: ossrhPassword)
-            }
-
-            snapshotRepository(url: "https://s01.oss.sonatype.org/content/repositories/snapshots/") {
-                authentication(userName: ossrhUsername, password: ossrhPassword)
-            }
-
-            pom.project {
-                name 'Example Application'
-                packaging 'jar'
-                // optionally artifactId can be defined here
-                description 'A application used as an example on how to set up pushing its components to the Central Repository.'
-                url 'http://www.example.com/example-application'
-
-                scm {
-                    connection 'scm:svn:http://foo.googlecode.com/svn/trunk/'
-                    developerConnection 'scm:svn:https://foo.googlecode.com/svn/trunk/'
-                    url 'http://foo.googlecode.com/svn/trunk/'
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'package-with-hyphen-separator'
+            from components.java
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
                 }
-
-                licenses {
-                    license {
-                        name 'The Apache License, Version 2.0'
-                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    }
+                usage('java-runtime') {
+                    fromResolutionResult()
                 }
-
+            }
+            pom {
+                name = 'package-with-hyphen-separator'
+                description = 'This is a custom plugin for mybatis generator.\n' +
+                        '\n' +
+                        'Package the snake case (_ delimiter) of the table name.'
+                url = 'https://github.com/naka-sho/package-with-hyphen-separator'
                 developers {
                     developer {
-                        id 'manfred'
-                        name 'Manfred Moser'
-                        email 'manfred@sonatype.com'
+                        id = 'naka-sho'
+                        name = 'nakao-shogo'
+                        email = 'te070356@gmail.com'
                     }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/naka-sho/package-with-hyphen-separator.git'
+                    developerConnection = 'scm:git:https://github.com/naka-sho/package-with-hyphen-separator.git'
+                    url = 'https://github.com/naka-sho/package-with-hyphen-separator'
                 }
             }
         }
+    }
+    repositories {
+        maven {
+//            def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2"
+//            def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots"
+//            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+
+            url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+        }
+    }
+}
+
+signing {
+    sign publishing.publications
+}
+
+
+javadoc {
+    if(JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
     }
 }

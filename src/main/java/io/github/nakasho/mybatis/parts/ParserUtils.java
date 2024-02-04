@@ -3,13 +3,16 @@ package io.github.nakasho.mybatis.parts;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+/**
+ * Utils クラス
+ */
 public class ParserUtils {
 
     /**
      * table名の_を.に変更し、最後の要素はアッパーキャメルケースに変更する
      *
      * @param tableName table名の要素
-     * @return
+     * @return 変更後のアッパーキャメル
      */
     public static String packageAndFileName(String tableName){
         String[] tableNameParts = tableName
