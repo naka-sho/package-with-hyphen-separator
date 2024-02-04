@@ -6,6 +6,9 @@ import org.mybatis.generator.api.PluginAdapter;
 import java.util.List;
 import java.util.Properties;
 
+/**
+ * mybatis generator
+ */
 public class PackageWithHyphenSeparatorPlugin extends PluginAdapter {
 
     @Override
