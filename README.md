@@ -16,7 +16,8 @@ dependencies {
     implementation "org.mybatis.dynamic-sql:mybatis-dynamic-sql:1.1.4"
     implementation "org.mybatis.scripting:mybatis-freemarker:1.2.2"
     runtimeOnly "org.postgresql:postgresql:42.5.1"
-    mybatisGenerator project(":package-with-hyphen-separator")
+    implementation 'io.github.naka-sho:package-with-hyphen-separator:0.0.11'
+    mybatisGenerator 'io.github.naka-sho:package-with-hyphen-separator:0.0.11'
 }
 ```
 
@@ -27,7 +28,7 @@ generatorConfigurationのpluginに追加してください。
     <context id="service" targetRuntime="MyBatis3DynamicSql">
         ...
 
-        <plugin type="PackageWithHyphenSeparatorPlugin"/>
+        <plugin type="io.github.nakasho.mybatis.parts.PackageWithHyphenSeparatorPlugin"/>
 
         ...
     </context>
@@ -37,4 +38,4 @@ generatorConfigurationのpluginに追加してください。
 
 mbGenerator を実行するとスネークケースに合わせてパッケージが作成されます。
 
-TODO: maven に登録はこれから
+https://central.sonatype.com/artifact/io.github.naka-sho/package-with-hyphen-separator
