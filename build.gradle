@@ -11,7 +11,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
 group = 'io.github.naka-sho'
-version = '0.0.10-SNAPSHOT'
+version = '0.0.12'
 sourceCompatibility = '17'
 
 configurations {
@@ -86,6 +86,12 @@ publishing {
                         '\n' +
                         'Package the snake case (_ delimiter) of the table name.'
                 url = 'https://github.com/naka-sho/package-with-hyphen-separator'
+                licenses {
+                    license {
+                        name.set("MIT license")
+                        url.set("https://github.com/naka-sho/package-with-hyphen-separator/blob/main/LICENSE")
+                    }
+                }
                 developers {
                     developer {
                         id = 'naka-sho'
@@ -103,11 +109,11 @@ publishing {
     }
     repositories {
         maven {
-//            def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2"
-//            def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots"
-//            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-
-            url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+            name = 'mySecureRepository'
+            credentials(PasswordCredentials)
+            def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2"
+            def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots"
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
         }
     }
 }
