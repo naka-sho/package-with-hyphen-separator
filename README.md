@@ -1,14 +1,16 @@
 # package-with-hyphen-separator
 
-mybatis generator のカスタムプラグインです。
+This is a custom plugin for mybatis generator.
 
-テーブル名のスネークケース(_区切り)をパッケージにします。
+Package the snake case (_ delimiter) of the table name.
 
-# 使用方法
+https://central.sonatype.com/artifact/io.github.naka-sho/package-with-hyphen-separator
+
+# using
 
 https://github.com/mybatis/generator
 
-以下のように、`mybatisGenerator` に設定してください。
+Set it to `mybatisGenerator` as shown below.
 
 ```groovy
 dependencies {
@@ -21,7 +23,7 @@ dependencies {
 }
 ```
 
-generatorConfigurationのpluginに追加してください。
+Please add it to the generatorConfiguration plugin.
 
 ```xml
 <generatorConfiguration>
@@ -36,6 +38,4 @@ generatorConfigurationのpluginに追加してください。
 
 ```
 
-mbGenerator を実行するとスネークケースに合わせてパッケージが作成されます。
-
-https://central.sonatype.com/artifact/io.github.naka-sho/package-with-hyphen-separator
+When you run mbGenerator, a package will be created according to the snake case.
