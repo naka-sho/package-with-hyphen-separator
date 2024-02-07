@@ -11,7 +11,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
 group = 'io.github.naka-sho'
-version = '0.0.12'
+version = '0.0.13'
 sourceCompatibility = '17'
 
 configurations {

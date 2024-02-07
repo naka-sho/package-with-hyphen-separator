@@ -4,24 +4,24 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 /**
- * Utils クラス
+ * Utils
  */
 public class ParserUtils {
 
     /**
-     * table名の_を.に変更し、最後の要素はアッパーキャメルケースに変更する
+     * Change _ in the table name to . and change the last element to upper camel case.
      *
-     * @param tableName table名の要素
-     * @return 変更後のアッパーキャメル
+     * @param tableName tablename
+     * @return after package and name
      */
-    public static String packageAndFileName(String tableName){
+    public static String packageAndFileName(String tableName) {
         String[] tableNameParts = tableName
                 .replaceAll("public.", "")
                 .split("_");
         String MapperName =
                 Arrays
                         .stream(tableNameParts)
-                        .map( e -> e.substring(0, 1).toUpperCase() + e.substring(1))
+                        .map(e -> e.substring(0, 1).toUpperCase() + e.substring(1))
                         .collect(Collectors.joining());
         tableNameParts[tableNameParts.length - 1] = MapperName;
         return String.join(".", tableNameParts);

@@ -1,56 +1,27 @@
 package io.github.nakasho.mybatis.parts;
 
 /**
- * Parser
+ * Generate Model name, Mapper name, and DynamicSqlSupport name from Table name
  */
-public class Parser {
-    private final static String REGEX = "\\.[^.]+$";
-    private final String baseRecordType;
-    private final String mybatis3JavaMapperType;
-    private final String mybatisDynamicSqlSupportType;
+public interface Parser {
+    /**
+     * Model
+     *
+     * @return Model name
+     */
+    String getBaseRecordType();
 
     /**
-     * Constructor
+     * Mapper name
      *
-     * @param fullyQualifiedTableNameAtRuntime テーブル名
-     * @param baseRecordType Model名(パス付き)
-     * @param mybatis3JavaMapperType Mapper名(パス付き)
-     * @param mybatisDynamicSqlSupportType DynamicSqlSupport名(パス付き)
+     * @return Mapper name
      */
-    public Parser(String fullyQualifiedTableNameAtRuntime, String baseRecordType, String mybatis3JavaMapperType, String mybatisDynamicSqlSupportType) {
-        String packageName = new ParserUtils().packageAndFileName(fullyQualifiedTableNameAtRuntime);
-        this.baseRecordType = baseRecordType
-                .replaceAll(REGEX, "." + packageName + "Record");
-        this.mybatis3JavaMapperType = mybatis3JavaMapperType
-                .replaceAll(REGEX, "." + packageName + "Mapper");
-        this.mybatisDynamicSqlSupportType = mybatisDynamicSqlSupportType
-                .replaceAll(REGEX, "." + packageName + "DynamicSqlSupport");
-    }
+    String getMybatis3JavaMapperType();
 
     /**
-     * Model名
+     * DynamicSqlSupport name
      *
-     * @return Model名
+     * @return DynamicSqlSupport name
      */
-    public String getBaseRecordType() {
-        return this.baseRecordType;
-    }
-
-    /**
-     * Mapper名
-     *
-     * @return Mapper名
-     */
-    public String getMybatis3JavaMapperType() {
-        return this.mybatis3JavaMapperType;
-    }
-
-    /**
-     * DynamicSqlSupport名
-     *
-     * @return DynamicSqlSupport名
-     */
-    public String getMybatisDynamicSqlSupportType() {
-        return this.mybatisDynamicSqlSupportType;
-    }
+    String getMybatisDynamicSqlSupportType();
 }

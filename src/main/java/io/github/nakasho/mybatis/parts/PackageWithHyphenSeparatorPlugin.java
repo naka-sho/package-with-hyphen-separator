@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Properties;
 
 /**
- * mybatis generator
+ * Plugin main class
  */
 public class PackageWithHyphenSeparatorPlugin extends PluginAdapter {
 
@@ -18,7 +18,7 @@ public class PackageWithHyphenSeparatorPlugin extends PluginAdapter {
 
     @Override
     public void initialized(IntrospectedTable introspectedTable) {
-        Parser parser = new Parser(
+        Parser parser = new ParserImpl(
                 introspectedTable.getFullyQualifiedTableNameAtRuntime(),
                 introspectedTable.getBaseRecordType(),
                 introspectedTable.getMyBatis3JavaMapperType(),
