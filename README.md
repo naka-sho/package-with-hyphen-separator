@@ -1,10 +1,79 @@
 # package-with-hyphen-separator
 
+https://central.sonatype.com/artifact/io.github.naka-sho/package-with-hyphen-separator
+
 This is a custom plugin for mybatis generator.
 
 Package the snake case (_ delimiter) of the table name.
 
-https://central.sonatype.com/artifact/io.github.naka-sho/package-with-hyphen-separator
+ - before
+
+```shell
+modelgen
+├── StackedBookPurchaseRecordDynamicSqlSupport.java
+├── StackedBookPurchaseRecordMapper.java
+├── StackedBookRecordDynamicSqlSupport.java
+├── StackedBookRecordMapper.java
+├── StackedBookTaskLinkRecordDynamicSqlSupport.java
+├── StackedBookTaskLinkRecordMapper.java
+├── StackedUserRecordDynamicSqlSupport.java
+├── StackedUserRecordMapper.java
+├── TaskCategoryRecordDynamicSqlSupport.java
+├── TaskCategoryRecordMapper.java
+├── TaskLabelRecordDynamicSqlSupport.java
+├── TaskLabelRecordMapper.java
+├── TaskRecordDynamicSqlSupport.java
+├── TaskRecordMapper.java
+├── UsersRecordDynamicSqlSupport.java
+└── UsersRecordMapper.java
+
+mappergen
+├── StackedBookPurchaseRecord.java
+├── StackedBookRecord.java
+├── StackedBookTaskLinkRecord.java
+├── StackedUserRecord.java
+├── TaskCategoryRecord.java
+├── TaskLabelRecord.java
+├── TaskRecord.java
+└── UsersRecord.java
+```
+
+ - after
+
+```shell
+modelgen
+├── UsersRecord.java
+├── stacked
+│   ├── StackedBookRecord.java
+│   ├── StackedUserRecord.java
+│   └── book
+│       ├── StackedBookPurchaseRecord.java
+│       └── task
+│           └── StackedBookTaskLinkRecord.java
+└── task
+    ├── TaskCategoryRecord.java
+    └── TaskLabelRecord.java
+
+mappergen
+├── UsersDynamicSqlSupport.java
+├── UsersMapper.java
+├── stacked
+│   ├── StackedBookDynamicSqlSupport.java
+│   ├── StackedBookMapper.java
+│   ├── StackedUserDynamicSqlSupport.java
+│   ├── StackedUserMapper.java
+│   └── book
+│       ├── StackedBookPurchaseDynamicSqlSupport.java
+│       ├── StackedBookPurchaseMapper.java
+│       └── task
+│           ├── StackedBookTaskLinkDynamicSqlSupport.java
+│           └── StackedBookTaskLinkMapper.java
+└── task
+    ├── TaskCategoryDynamicSqlSupport.java
+    ├── TaskCategoryMapper.java
+    ├── TaskLabelDynamicSqlSupport.java
+    └── TaskLabelMapper.java
+```
 
 # using
 
