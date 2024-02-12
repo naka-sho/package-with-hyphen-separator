@@ -10,6 +10,16 @@ Package the snake case (_ delimiter) of the table name.
 
 ```shell
 modelgen
+├── StackedBookPurchaseRecord.java
+├── StackedBookRecord.java
+├── StackedBookTaskLinkRecord.java
+├── StackedUserRecord.java
+├── TaskCategoryRecord.java
+├── TaskLabelRecord.java
+├── TaskRecord.java
+└── UsersRecord.java
+
+mappergen
 ├── StackedBookPurchaseRecordDynamicSqlSupport.java
 ├── StackedBookPurchaseRecordMapper.java
 ├── StackedBookRecordDynamicSqlSupport.java
@@ -26,16 +36,6 @@ modelgen
 ├── TaskRecordMapper.java
 ├── UsersRecordDynamicSqlSupport.java
 └── UsersRecordMapper.java
-
-mappergen
-├── StackedBookPurchaseRecord.java
-├── StackedBookRecord.java
-├── StackedBookTaskLinkRecord.java
-├── StackedUserRecord.java
-├── TaskCategoryRecord.java
-├── TaskLabelRecord.java
-├── TaskRecord.java
-└── UsersRecord.java
 ```
 
  - after
