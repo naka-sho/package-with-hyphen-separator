@@ -48,19 +48,19 @@ test {
     }
 }
 
-task javadocJar(type: Jar) {
-    classifier = 'javadoc'
-    from javadoc
-}
+//task javadocJar(type: Jar) {
+//    classifier = 'javadoc'
+//    from javadoc
+//}
+//
+//task sourcesJar(type: Jar) {
+//    classifier = 'sources'
+//    from sourceSets.main.allSource
+//}
 
-task sourcesJar(type: Jar) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
-
-artifacts {
-    archives javadocJar, sourcesJar
-}
+//artifacts {
+//    archives javadocJar, sourcesJar
+//}
 
 java {
     withJavadocJar()
@@ -120,11 +120,4 @@ publishing {
 
 signing {
     sign publishing.publications
-}
-
-
-javadoc {
-    if(JavaVersion.current().isJava9Compatible()) {
-        options.addBooleanOption('html5', true)
-    }
 }
