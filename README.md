@@ -108,3 +108,47 @@ Please add it to the generatorConfiguration plugin.
 ```
 
 When you run mbGenerator, a package will be created according to the snake case.
+
+# Configuration Change for Auto-generation Target Tables(with Postgres)
+
+## Description
+
+Adds SkipPartitionedWithPostgresTablesPlugin, a MyBatis Generator (MBG) plugin that skips generating artifacts (model classes, mappers, dynamic SQL support) for PostgreSQL partition child tables. It discovers all non-partition-child tables plus views (excluding pg_catalog and information_schema) and only generates code for those. Optionally writes the allowlist to a file. Supports case-insensitive matching.
+
+## Background
+
+PostgreSQL declarative partitioning creates a physical table for every partition. Generating MyBatis artifacts for each child partition leads to:
+- A large number of nearly identical classes/mappers
+- Churn when time-based partitions rotate
+- Redundant code when logic works at the parent level or routing is external
+
+This plugin:
+
+- Queries PostgreSQL system catalogs (pg_inherits, pg_class, pg_tables, pg_views)
+- Excludes partition child tables
+- Keeps normal tables, partition parent tables, and views
+- Fails fast (throws RuntimeException) if discovery or writing the allowlist fails
+
+## Usage
+Add the plugin inside an MBG <context> that has a PostgreSQL connection (either jdbcConnection or connectionFactory).
+
+- Available properties:
+    - allowlistFile (optional): file path to write the discovered (sorted) table/view names
+    - caseInsensitive (optional, default false): perform case-insensitive matching
+
+Example:
+```xml
+<context id="PostgresContext" targetRuntime="MyBatis3">
+  <jdbcConnection driverClass="org.postgresql.Driver"
+                  connectionURL="jdbc:postgresql://localhost:5432/appdb"
+                  userId="app"
+                  password="secret"/>
+
+  <plugin type="org.mybatis.generator.plugins.SkipPartitionedWithPostgresTablesPlugin">
+    <property name="allowlistFile" value="build/mbg/allowlist.txt"/>
+    <property name="caseInsensitive" value="true"/>
+  </plugin>
+
+  <!-- Optional <table> elements. If omitted, MBG introspects all; the plugin filters afterward. -->
+</context>
+```

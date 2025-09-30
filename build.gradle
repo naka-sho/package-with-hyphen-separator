@@ -32,6 +32,7 @@ dependencies {
     implementation 'org.mybatis.generator:mybatis-generator-core:1.4.2'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
+    testImplementation 'org.assertj:assertj-core:3.25.3'
 }
 
 test {
@@ -46,20 +47,6 @@ test {
         // 例外発生時の出力設定 (TestExceptionFormat)
         exceptionFormat 'full'
     }
-}
-
-task javadocJar(type: Jar) {
-    classifier = 'javadoc'
-    from javadoc
-}
-
-task sourcesJar(type: Jar) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
-
-artifacts {
-    archives javadocJar, sourcesJar
 }
 
 java {
@@ -118,8 +105,20 @@ publishing {
     }
 }
 
+// Conditional signing: skip for 'publishToMavenLocal' and for SNAPSHOT builds.
+// Supports in-memory PGP key usage via -PsigningKey and -PsigningPassword.
+// If keys are not supplied and signing not required, signing tasks are skipped.
+ext { signingKey = findProperty('signingKey'); signingPassword = findProperty('signingPassword') }
+
 signing {
-    sign publishing.publications
+    required {
+        // Required only when not publishing to mavenLocal and version is a release (non-SNAPSHOT)
+        !gradle.taskGraph.hasTask(":publishToMavenLocal") && !version.toString().endsWith('SNAPSHOT')
+    }
+    if (signingKey && signingPassword) {
+        useInMemoryPgpKeys(signingKey.toString(), signingPassword.toString())
+    }
+    sign publishing.publications.mavenJava
 }
 
 
