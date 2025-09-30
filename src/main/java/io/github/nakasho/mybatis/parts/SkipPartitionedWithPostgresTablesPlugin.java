@@ -138,9 +138,9 @@ public class SkipPartitionedWithPostgresTablesPlugin extends PluginAdapter {
     /**
      * Discover non-partitioned tables in the given schema.
      *
-     * @param schemaName
-     * @return
-     * @throws SQLException
+     * @param schemaName schema name, defaults to "public"
+     * @return non-partitioned tables
+     * @throws SQLException if a database access error occurs
      */
     protected Set<String> discoverNonPartitionedTables(String schemaName) throws SQLException {
         final String query = "WITH partition_children AS (\n" +
