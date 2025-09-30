@@ -11,8 +11,8 @@ apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
 group = 'io.github.naka-sho'
-version = '0.0.12'
-sourceCompatibility = '17'
+version = '1.0.0'
+sourceCompatibility = '21'
 
 configurations {
     compileOnly {
@@ -48,6 +48,20 @@ test {
         exceptionFormat 'full'
     }
 }
+
+//task javadocJar(type: Jar) {
+//    classifier = 'javadoc'
+//    from javadoc
+//}
+//
+//task sourcesJar(type: Jar) {
+//    classifier = 'sources'
+//    from sourceSets.main.allSource
+//}
+
+//artifacts {
+//    archives javadocJar, sourcesJar
+//}
 
 java {
     withJavadocJar()
@@ -105,25 +119,6 @@ publishing {
     }
 }
 
-// Conditional signing: skip for 'publishToMavenLocal' and for SNAPSHOT builds.
-// Supports in-memory PGP key usage via -PsigningKey and -PsigningPassword.
-// If keys are not supplied and signing not required, signing tasks are skipped.
-ext { signingKey = findProperty('signingKey'); signingPassword = findProperty('signingPassword') }
-
 signing {
-    required {
-        // Required only when not publishing to mavenLocal and version is a release (non-SNAPSHOT)
-        !gradle.taskGraph.hasTask(":publishToMavenLocal") && !version.toString().endsWith('SNAPSHOT')
-    }
-    if (signingKey && signingPassword) {
-        useInMemoryPgpKeys(signingKey.toString(), signingPassword.toString())
-    }
-    sign publishing.publications.mavenJava
-}
-
-
-javadoc {
-    if(JavaVersion.current().isJava9Compatible()) {
-        options.addBooleanOption('html5', true)
-    }
+    sign publishing.publications
 }

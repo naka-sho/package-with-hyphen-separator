@@ -54,6 +54,11 @@ public class SkipPartitionedWithPostgresTablesPlugin extends PluginAdapter {
     private boolean caseInsensitive = false;
     private Set<String> allowlistNormalized = null; // used only when caseInsensitive
 
+    /**
+     * Constructor
+     */
+    public SkipPartitionedWithPostgresTablesPlugin() {}
+
     private boolean hasConnectionConfiguration() {
         if (context == null) {
             return false;
@@ -130,6 +135,13 @@ public class SkipPartitionedWithPostgresTablesPlugin extends PluginAdapter {
         return true; // always valid
     }
 
+    /**
+     * Discover non-partitioned tables in the given schema.
+     *
+     * @param schemaName
+     * @return
+     * @throws SQLException
+     */
     protected Set<String> discoverNonPartitionedTables(String schemaName) throws SQLException {
         final String query = "WITH partition_children AS (\n" +
                 "    SELECT\n" +
