@@ -11,7 +11,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
 group = 'io.github.naka-sho'
-version = '1.0.3'
+version = '1.0.0'
 sourceCompatibility = '21'
 
 configurations {
@@ -58,6 +58,30 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
+            pom {
+                name.set(project.name)
+                description.set("Extension utilities for MyBatis Generator (Java 21).")
+                url.set("https://github.com/naka-sho/${project.name}")
+                licenses {
+                    license {
+                        name.set("Apache License 2.0")
+                        url.set("https://www.apache.org/licenses/LICENSE-2.0")
+                        distribution.set("repo")
+                    }
+                }
+                scm {
+                    connection.set("scm:git:https://github.com/naka-sho/${project.name}.git")
+                    developerConnection.set("scm:git:ssh://github.com/naka-sho/${project.name}.git")
+                    url.set("https://github.com/naka-sho/${project.name}")
+                }
+                developers {
+                    developer {
+                        id.set("naka-sho")
+                        name.set("naka-sho")
+                        url.set("https://github.com/naka-sho")
+                    }
+                }
+            }
         }
     }
 }
