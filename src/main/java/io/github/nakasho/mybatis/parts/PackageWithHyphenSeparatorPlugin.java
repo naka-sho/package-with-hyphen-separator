@@ -11,6 +11,11 @@ import java.util.Properties;
  */
 public class PackageWithHyphenSeparatorPlugin extends PluginAdapter {
 
+    /**
+     * Constructor
+     */
+    public PackageWithHyphenSeparatorPlugin() {}
+
     @Override
     public void setProperties(Properties properties) {
         super.setProperties(properties);

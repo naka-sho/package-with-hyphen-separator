@@ -9,6 +9,11 @@ import java.util.stream.Collectors;
 public class ParserUtils {
 
     /**
+     * Constructor
+     */
+    public ParserUtils() {}
+
+    /**
      * table名の_を.に変更し、最後の要素はアッパーキャメルケースに変更する
      *
      * @param tableName table名の要素
