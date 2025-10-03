@@ -11,7 +11,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
 group = 'io.github.naka-sho'
-version = '1.0.0'
+version = '1.0.3'
 sourceCompatibility = '21'
 
 configurations {
@@ -49,20 +49,6 @@ test {
     }
 }
 
-//task javadocJar(type: Jar) {
-//    classifier = 'javadoc'
-//    from javadoc
-//}
-//
-//task sourcesJar(type: Jar) {
-//    classifier = 'sources'
-//    from sourceSets.main.allSource
-//}
-
-//artifacts {
-//    archives javadocJar, sourcesJar
-//}
-
 java {
     withJavadocJar()
     withSourcesJar()
@@ -71,54 +57,280 @@ java {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifactId = 'package-with-hyphen-separator'
             from components.java
-            versionMapping {
-                usage('java-api') {
-                    fromResolutionOf('runtimeClasspath')
-                }
-                usage('java-runtime') {
-                    fromResolutionResult()
-                }
-            }
-            pom {
-                name = 'package-with-hyphen-separator'
-                description = 'This is a custom plugin for mybatis generator.\n' +
-                        '\n' +
-                        'Package the snake case (_ delimiter) of the table name.'
-                url = 'https://github.com/naka-sho/package-with-hyphen-separator'
-                licenses {
-                    license {
-                        name.set("MIT license")
-                        url.set("https://github.com/naka-sho/package-with-hyphen-separator/blob/main/LICENSE")
-                    }
-                }
-                developers {
-                    developer {
-                        id = 'naka-sho'
-                        name = 'nakao-shogo'
-                        email = 'te070356@gmail.com'
-                    }
-                }
-                scm {
-                    connection = 'scm:git:https://github.com/naka-sho/package-with-hyphen-separator.git'
-                    developerConnection = 'scm:git:https://github.com/naka-sho/package-with-hyphen-separator.git'
-                    url = 'https://github.com/naka-sho/package-with-hyphen-separator'
-                }
-            }
-        }
-    }
-    repositories {
-        maven {
-            name = 'mySecureRepository'
-            credentials(PasswordCredentials)
-            def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2"
-            def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots"
-            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
         }
     }
 }
 
-signing {
-    sign publishing.publications
+// 設定確認用タスク
+tasks.register('printPublishConfig') {
+    group = 'help'
+    description = '選択された publish 先 (OSSRH / Central) と資格情報有無を表示'
+    doLast {
+        def useCentral = project.hasProperty('useCentralPortal') || System.getenv('USE_CENTRAL_PORTAL') == 'true'
+        println "[printPublishConfig] useCentralPortal=${useCentral}"
+        if (useCentral) {
+            println "[printPublishConfig] centralUsername: ${ (findProperty('centralUsername') ?: System.getenv('CENTRAL_USERNAME')) ? 'SET' : 'NOT SET' }"
+            println "[printPublishConfig] centralToken: ${ (findProperty('centralToken') ?: System.getenv('CENTRAL_TOKEN')) ? 'SET' : 'NOT SET' }"
+        } else {
+            println "[printPublishConfig] ossrhUsername: ${ (findProperty('ossrhUsername') ?: System.getenv('OSSRH_USERNAME')) ? 'SET' : 'NOT SET' }"
+            println "[printPublishConfig] ossrhPassword: ${ (findProperty('ossrhPassword') ?: System.getenv('OSSRH_PASSWORD')) ? 'SET' : 'NOT SET' }"
+        }
+        println '[printPublishConfig] version=' + project.version + ' (snapshot=' + project.version.toString().endsWith('SNAPSHOT') + ')'
+    }
+}
+
+// --- Conditional Signing Configuration (updated with skipSigning and forceSign flags) ---
+
+def skipSigning = project.hasProperty('skipSigning')
+
+// 1) ファイル経由 (signingKeyFile) > 2) プロパティ signingKey > 3) 環境変数 SIGNING_KEY の優先順
+def signingKeyFilePath = (findProperty('signingKeyFile') ?: System.getenv('SIGNING_KEY_FILE'))
+String signingKeyProp = null
+if (signingKeyFilePath) {
+    def f = file(signingKeyFilePath)
+    if (f.exists()) {
+        signingKeyProp = f.getText('UTF-8')
+        logger.lifecycle("Loaded signing key from file: ${f.absolutePath}")
+    } else {
+        logger.warn("signingKeyFile が存在しません: ${signingKeyFilePath}")
+    }
+}
+if (!signingKeyProp) {
+    signingKeyProp = (findProperty('signingKey') ?: System.getenv('SIGNING_KEY'))
+}
+if (signingKeyProp instanceof String) {
+    signingKeyProp = signingKeyProp.replace('\r', '')
+    if (signingKeyProp.contains('\\n') && !signingKeyProp.contains('\n-----END')) {
+        signingKeyProp = signingKeyProp.replace('\\n', '\n')
+    }
+    signingKeyProp = signingKeyProp.trim()
+}
+if (signingKeyProp && !(signingKeyProp.startsWith('-----BEGIN PGP PRIVATE KEY BLOCK-----') && signingKeyProp.contains('-----END PGP PRIVATE KEY BLOCK-----'))) {
+    logger.warn("signingKey のフォーマットが完全ではない可能性があります (BEGIN/END 行を確認してください)。")
+}
+
+def signingPasswordProp = (findProperty('signingPassword') ?: System.getenv('SIGNING_PASSWORD'))
+
+def hasInMemoryKey = signingKeyProp && signingPasswordProp
+
+def forceSign = project.hasProperty('forceSign') // explicit opt-in if you still want to sign without in-memory key
+
+def shouldSign = !skipSigning && (hasInMemoryKey || forceSign)
+
+if (shouldSign) {
+    signing {
+        if (hasInMemoryKey) { useInMemoryPgpKeys(signingKeyProp, signingPasswordProp) }
+        sign publishing.publications
+    }
+    if (forceSign && !hasInMemoryKey) {
+        logger.lifecycle("PGP signing forced via -PforceSign (using Gradle's default key ring discovery).")
+    } else {
+        logger.lifecycle("PGP signing enabled (in-memory key detected).")
+    }
+} else {
+    tasks.withType(Sign).configureEach { enabled = false }
+    if (skipSigning) {
+        logger.lifecycle("PGP signing explicitly skipped due to -PskipSigning.")
+    } else {
+        logger.lifecycle("PGP signing disabled (no in-memory key and no -PforceSign). Skipping artifact signing.")
+    }
+}
+
+// --- Debug task: show sanitized information about the provided signing key ---
+// 実際の鍵本文を漏らさずにフォーマットを検証するための補助タスク。
+tasks.register('debugSigningKey') {
+    group = 'verification'
+    description = 'Prints sanitized diagnostics about the provided signingKey property/env.'
+    doLast {
+        def key = signingKeyProp
+        if (!key) {
+            println "[debugSigningKey] signingKey が空です。-PsigningKey=... もしくは SIGNING_KEY / signingKeyFile を指定してください。"
+            return
+        }
+        def lines = key.readLines()
+        println "[debugSigningKey] 行数: ${lines.size()}"
+        println "[debugSigningKey] 先頭行: ${lines[0]}"
+        println "[debugSigningKey] 最終行: ${lines[-1]}"
+        println "[debugSigningKey] 文字数: ${key.length()}"
+        println "[debugSigningKey] 'PRIVATE KEY BLOCK' 含有: ${key.contains('PRIVATE KEY BLOCK')}"
+        println "[debugSigningKey] ダッシュ行(-----) の数: ${lines.count{ it.startsWith('-----') }}"
+        def base64Lines = lines.findAll { it ==~ /^[A-Za-z0-9+\/=]+$/ }
+        println "[debugSigningKey] Base64っぽい行の数: ${base64Lines.size()}"
+    }
+}
+
+// =============== Central Portal Publish Support (bundle + upload) ===============
+// 使い方:
+//   1) namespace を Central Portal で claim 済み ("io.github.nakasho")
+//   2) Publishing Token (username / password) を発行
+//   3) ~/.gradle/gradle.properties などに
+//        centralUsername=xxxxx
+//        centralToken=xxxxx
+//        signingKeyFile=/path/to/private.asc (任意: 署名する場合)
+//        signingPassword=パスフレーズ
+//   4) 実行: ./gradlew clean publishCentral -PuseCentralPortal
+//      署名スキップ: ./gradlew clean publishCentral -PuseCentralPortal -PskipSigning
+
+ext.isCentralPortal = project.hasProperty('useCentralPortal') || System.getenv('USE_CENTRAL_PORTAL') == 'true'
+
+// namespace 簡易検証
+tasks.register('checkCentralNamespace') {
+    onlyIf { isCentralPortal }
+    doLast {
+        def g = project.group.toString()
+        println "[checkCentralNamespace] groupId=${g}"
+        if (!g.startsWith('io.github.')) {
+            println "[WARN] groupId は io.github.<GitHubユーザー名> 推奨です。";
+        } else {
+            def user = g.substring('io.github.'.length())
+            println "[checkCentralNamespace] 推定 GitHub ユーザー: ${user}  -> https://github.com/${user}"
+        }
+        if (project.version.endsWith('-SNAPSHOT')) {
+            println "[WARN] SNAPSHOT 版は Central Portal へアップロードできません。"
+        }
+        println "Central Portal で 'Namespaces' -> '${g}' が Owned になっているか確認してください。"
+    }
+}
+
+// Maven Local に成果物を確実に生成 (署名含む)
+// publishToMavenLocal を呼び出すが、Central Portal には直接 publish しない
+
+// bundle 作成
+def centralBundleDir = layout.buildDirectory.dir('centralPortal/bundle')
+def centralWorkDir = layout.buildDirectory.dir('centralPortal/work')
+def bundleFileProvider = centralBundleDir.map { it.file("${project.name}-${project.version}-central-bundle.zip") }
+
+tasks.register('createCentralPortalBundle') {
+    group = 'publishing'
+    description = 'Central Portal 提出用 bundle(zip) を作成'
+    onlyIf { isCentralPortal }
+    dependsOn 'publishToMavenLocal'
+    outputs.file(bundleFileProvider)
+    doLast {
+        if (project.version.endsWith('-SNAPSHOT')) {
+            throw new GradleException('SNAPSHOT バージョンは Central Portal へアップロード不可です。')
+        }
+        def groupPath = project.group.toString().replace('.', '/')
+        def localRepo = new File(System.getProperty('user.home'), '.m2/repository')
+        def artifactDir = new File(localRepo, "${groupPath}/${project.name}/${project.version}")
+        if (!artifactDir.exists()) {
+            throw new GradleException("Maven Local に成果物が見つかりません: ${artifactDir}")
+        }
+        def requiredBase = [
+            "${project.name}-${project.version}.jar",
+            "${project.name}-${project.version}-sources.jar",
+            "${project.name}-${project.version}-javadoc.jar",
+            "${project.name}-${project.version}.pom"
+        ]
+        requiredBase.each { fname ->
+            if (!new File(artifactDir, fname).exists()) {
+                throw new GradleException("必須ファイルが存在しません: ${fname}")
+            }
+        }
+        def signingPresent = requiredBase.any { new File(artifactDir, it + '.asc').exists() }
+        if (!signingPresent) {
+            println '[INFO] 署名(.asc)なしで進行します (skipSigning あるいは鍵未設定)。'
+        } else {
+            println '[INFO] 署名ファイル検出 (.asc)。'
+        }
+        // 作業ディレクトリクリーン
+        def workRoot = centralWorkDir.get().asFile
+        if (workRoot.exists()) workRoot.deleteDir()
+        def targetBase = new File(workRoot, "${groupPath}/${project.name}/${project.version}")
+        targetBase.mkdirs()
+        // 対象ファイル収集
+        artifactDir.listFiles().findAll { f ->
+            f.name.startsWith("${project.name}-${project.version}") && (
+                f.name.endsWith('.jar') || f.name.endsWith('.pom') || f.name.endsWith('-sources.jar') || f.name.endsWith('-javadoc.jar') || f.name.endsWith('.jar.asc') || f.name.endsWith('.pom.asc') || f.name.endsWith('-sources.jar.asc') || f.name.endsWith('-javadoc.jar.asc')
+            )
+        }.each { f ->
+            new File(targetBase, f.name).bytes = f.bytes
+        }
+        // Checksum 生成 (MD5 / SHA1) - 既に存在するならスキップ
+        def md5 = { File f ->
+            def md = java.security.MessageDigest.getInstance('MD5'); md.update(f.bytes); md.digest().collect { String.format('%02x', it) }.join()
+        }
+        def sha1 = { File f ->
+            def md = java.security.MessageDigest.getInstance('SHA-1'); md.update(f.bytes); md.digest().collect { String.format('%02x', it) }.join()
+        }
+        targetBase.listFiles().findAll { it.isFile() && !it.name.endsWith('.md5') && !it.name.endsWith('.sha1') }.each { f ->
+            def md5File = new File(f.parentFile, f.name + '.md5')
+            def sha1File = new File(f.parentFile, f.name + '.sha1')
+            if (!md5File.exists()) md5File.text = md5(f)
+            if (!sha1File.exists()) sha1File.text = sha1(f)
+        }
+        // zip
+        def bundleFile = bundleFileProvider.get().asFile
+        bundleFile.parentFile.mkdirs()
+        ant.zip(destfile: bundleFile) {
+            workRoot.eachFileRecurse { file ->
+                if (file.isFile()) {
+                    def relPath = workRoot.toPath().relativize(file.toPath()).toString().replace('\\', '/')
+                    zipfileset(file: file, fullpath: relPath)
+                }
+            }
+        }
+        logger.lifecycle("[CentralPortal] Bundle created: ${bundleFile}")
+    }
+}
+
+// アップロード
+tasks.register('uploadCentralPortalBundle') {
+    group = 'publishing'
+    description = 'Central Portal API へ bundle をアップロード'
+    onlyIf { isCentralPortal }
+    dependsOn 'createCentralPortalBundle'
+    doLast {
+        def user = (findProperty('centralUsername') ?: System.getenv('CENTRAL_USERNAME'))
+        def token = (findProperty('centralToken') ?: System.getenv('CENTRAL_TOKEN'))
+        if (!user || !token) {
+            throw new GradleException('centralUsername / centralToken が未設定です。')
+        }
+        def bundleFile = bundleFileProvider.get().asFile
+        if (!bundleFile.exists()) throw new GradleException("bundle ファイルがありません: ${bundleFile}")
+        def boundary = '----CentralPortalBoundary' + System.currentTimeMillis()
+        def url = new URL('https://central.sonatype.com/api/v1/publisher/upload')
+        println "[CentralPortal] Uploading to ${url}"
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection()
+        conn.setRequestMethod('POST')
+        conn.setDoOutput(true)
+        conn.setConnectTimeout(20000)
+        conn.setReadTimeout(60000)
+        def basic = Base64.encoder.encodeToString("${user}:${token}".getBytes('UTF-8'))
+        conn.setRequestProperty('Authorization', 'Basic ' + basic)
+        conn.setRequestProperty('Content-Type', 'multipart/form-data; boundary=' + boundary)
+        def out = new DataOutputStream(conn.getOutputStream())
+        def NL = '\r\n'
+        out.writeBytes('--' + boundary + NL)
+        out.writeBytes('Content-Disposition: form-data; name="bundle"; filename="' + bundleFile.name + '"' + NL)
+        out.writeBytes('Content-Type: application/zip' + NL + NL)
+        bundleFile.withInputStream { it.transferTo(out) }
+        out.writeBytes(NL)
+        out.writeBytes('--' + boundary + '--' + NL)
+        out.flush(); out.close()
+        int code = conn.getResponseCode()
+        def respStream = code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream()
+        def resp = respStream?.getText('UTF-8')
+        println "[CentralPortal] HTTP ${code}"
+        if (resp) println "[CentralPortal] Body: ${resp}"
+        if (code < 200 || code >= 300) {
+            throw new GradleException("Central Portal upload failed (HTTP ${code}).")
+        }
+        println "[CentralPortal] Upload success. Portal 上でステージング/承認を確認してください。"
+    }
+}
+
+// 全体フロー
+tasks.register('publishCentral') {
+    group = 'publishing'
+    description = 'Central Portal 用: publishToMavenLocal -> bundle -> upload'
+    dependsOn 'uploadCentralPortalBundle'
+    onlyIf { isCentralPortal }
+}
+
+// 標準 publish 実行時にも中央ポータルフローを含めたい場合
+tasks.named('publish') {
+    doFirst { if (isCentralPortal) println '[CentralPortal] useCentralPortal=true -> publishCentral を内部実行' }
+    if (isCentralPortal) dependsOn 'publishCentral'
 }
