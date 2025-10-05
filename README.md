@@ -15,6 +15,43 @@ dependencies {
 }
 ```
 
+# PostgreSQL TIMESTAMPTZ to OffsetDateTime Mapping
+
+## Description
+
+Adds TimestamptzToOffsetDateTimePlugin, a MyBatis Generator (MBG) plugin that automatically converts PostgreSQL TIMESTAMPTZ (timestamp with time zone) columns to `java.time.OffsetDateTime` instead of the default `java.sql.Timestamp`.
+
+## Background
+
+PostgreSQL's TIMESTAMPTZ type stores timezone-aware timestamps. By default, MyBatis Generator maps TIMESTAMPTZ columns to `java.sql.Timestamp`, which can cause issues:
+- Loss of timezone information
+- Conversion errors when retrieving data from the database
+- Incompatibility with modern Java time API
+
+This plugin automatically changes the mapping to `java.time.OffsetDateTime`, which:
+- Preserves timezone information
+- Works seamlessly with PostgreSQL TIMESTAMPTZ columns
+- Uses the modern Java 8+ time API
+
+## Usage
+
+Add the plugin to your MyBatis Generator configuration:
+
+```xml
+<context id="PostgresContext" targetRuntime="MyBatis3DynamicSql">
+  <jdbcConnection driverClass="org.postgresql.Driver"
+                  connectionURL="jdbc:postgresql://localhost:5432/appdb"
+                  userId="app"
+                  password="secret"/>
+
+  <plugin type="io.github.nakasho.mybatis.parts.TimestamptzToOffsetDateTimePlugin"/>
+
+  <!-- Other configuration -->
+</context>
+```
+
+The plugin automatically detects TIMESTAMPTZ and "TIMESTAMP WITH TIME ZONE" columns and converts them to `java.time.OffsetDateTime`.
+
 # Configuration Change for Auto-generation Target Tables(with Postgres)
 
 ## Description
